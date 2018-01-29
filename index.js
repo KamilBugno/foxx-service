@@ -1,4 +1,4 @@
-use strict';
+'use strict';
 const createRouter = require('@arangodb/foxx/router');
 const router = createRouter();
 
