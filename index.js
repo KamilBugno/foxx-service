@@ -49,6 +49,7 @@ router.get('/get-mails', function (req, res) {
                               )
                                             
             RETURN ({
+                mail_key: mail._key,
                 from: mail._from, 
                 to: mail._to,
                 full_name_from: 
