@@ -38,11 +38,11 @@ router.post('/save-file/:name', function (req, res) {
     .description('Save a binary file');
 
 router.get('/get-mails', function (req, res) {
+    var a = "do";
     const keys = db._query(aql`
     FOR mail IN ${mails} 
-    RETURN (FOR per in ${hrSystem}  
+       FOR per in ${hrSystem}  
             FILTER per._id == mail._to 
-            
             LET from_person = (FOR p in HRSystem 
                                 FILTER p._id == mail._from
                                 RETURN p
@@ -60,9 +60,40 @@ router.get('/get-mails', function (req, res) {
                 topic: mail.topic, 
                 body: mail.body
 
-            }))[0]
+            })
   `);
     res.send(keys);
 })
+    .summary('Get mails')
+    .description('Get mails');
+
+router.get('/get-mails/:text', function (req, res) {
+    const keys = db._query(aql`
+    FOR mail IN ${mails} 
+        FOR per in ${hrSystem}  
+            FILTER per._id == mail._to 
+            FILTER REGEX_TEST(mail.body, ${req.pathParams.text}, true)
+            LET from_person = (FOR p in HRSystem 
+                                FILTER p._id == mail._from
+                                RETURN p
+                              )
+                                            
+            RETURN ({
+                mail_key: mail._key,
+                from: mail._from, 
+                to: mail._to,
+                full_name_from: 
+                    CONCAT_SEPARATOR(" ", from_person[0].name, from_person[0].surname), 
+                full_name_to: CONCAT_SEPARATOR(" ", per.name, per.surname),
+                from_mail_address: from_person[0].official_mail,
+                to_mail_address: per.official_mail,
+                topic: mail.topic, 
+                body: mail.body
+
+            })
+  `);
+    res.send(keys);
+})
+    .pathParam('text', joi.string().required(), 'Text included in the content')
     .summary('Get mails')
     .description('Get mails');
