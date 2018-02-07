@@ -95,5 +95,15 @@ router.get('/get-mails/:text', function (req, res) {
     res.send(keys);
 })
     .pathParam('text', joi.string().required(), 'Text included in the content')
-    .summary('Get mails')
-    .description('Get mails');
+    .summary('Get mails - searching in the body')
+    .description('Get mails - serching in the body');
+
+router.post('/add-mail', function (req, res) {
+    const data = req.body;
+    const meta = mails.save(req.body);
+    res.send(Object.assign(data, meta));
+})
+    .body(joi.object().required(), 'Add mail')
+    .response(joi.object().required(), 'Added mail')
+    .summary('Add mail')
+    .description('Add mail');
