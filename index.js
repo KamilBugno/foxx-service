@@ -46,7 +46,7 @@ router.get('/get-mails', function (req, res) {
                                 FILTER p._id == mail._from
                                 RETURN p
                               )
-            LET hasAttachment = mail.text_from_attachment == "" || 
+            LET has_attachment = mail.text_from_attachment == "" || 
                                 mail.text_from_attachment == null ? 0 : 1                
 
             RETURN ({
@@ -60,7 +60,7 @@ router.get('/get-mails', function (req, res) {
                 to_mail_address: per.official_mail,
                 topic: mail.topic, 
                 body: mail.body,
-                hasAttachment: hasAttachment
+                has_attachment: has_attachment
 
             })
   `);
@@ -79,7 +79,7 @@ router.get('/get-mails/:text', function (req, res) {
                                 FILTER p._id == mail._from
                                 RETURN p
                               )
-            LET hasAttachment = mail.text_from_attachment == "" || 
+            LET has_attachment = mail.text_from_attachment == "" || 
                                 mail.text_from_attachment == null ? 0 : 1            
 
             RETURN ({
@@ -93,7 +93,7 @@ router.get('/get-mails/:text', function (req, res) {
                 to_mail_address: per.official_mail,
                 topic: mail.topic, 
                 body: mail.body,
-                hasAttachment: hasAttachment
+                has_attachment: has_attachment
 
             })
   `);
@@ -112,7 +112,7 @@ router.get('/get-mails-by-attachment/:text', function (req, res) {
                                 FILTER p._id == mail._from
                                 RETURN p
                               )
-            LET hasAttachment = mail.text_from_attachment == "" || 
+            LET has_attachment = mail.text_from_attachment == "" || 
                                 mail.text_from_attachment == null ? 0 : 1 
                                             
             RETURN ({
@@ -126,7 +126,7 @@ router.get('/get-mails-by-attachment/:text', function (req, res) {
                 to_mail_address: per.official_mail,
                 topic: mail.topic, 
                 body: mail.body,
-                hasAttachment: hasAttachment
+                has_attachment: has_attachment
             })
   `);
     res.send(keys);
