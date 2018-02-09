@@ -37,7 +37,7 @@ router.post('/save-file/:name', function (req, res) {
     .summary('Save file')
     .description('Save a binary file');
 
-router.get('/get-mails', function (req, res) {
+router.get('/get-all-mails', function (req, res) {
     const keys = db._query(aql`
     FOR mail IN ${mails} 
        FOR per in ${hrSystem}  
@@ -69,7 +69,7 @@ router.get('/get-mails', function (req, res) {
     .summary('Get mails')
     .description('Get mails');
 
-router.get('/get-mails/:text', function (req, res) {
+router.get('/get-mails-by-body/:text', function (req, res) {
     const keys = db._query(aql`
     FOR mail IN ${mails} 
         FOR per in ${hrSystem}  
