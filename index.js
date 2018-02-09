@@ -38,7 +38,6 @@ router.post('/save-file/:name', function (req, res) {
     .description('Save a binary file');
 
 router.get('/get-mails', function (req, res) {
-    var a = "do";
     const keys = db._query(aql`
     FOR mail IN ${mails} 
        FOR per in ${hrSystem}  
@@ -47,7 +46,9 @@ router.get('/get-mails', function (req, res) {
                                 FILTER p._id == mail._from
                                 RETURN p
                               )
-                                            
+            LET hasAttachment = mail.text_from_attachment == "" || 
+                                mail.text_from_attachment == null ? 0 : 1                
+
             RETURN ({
                 mail_key: mail._key,
                 from: mail._from, 
@@ -58,7 +59,8 @@ router.get('/get-mails', function (req, res) {
                 from_mail_address: from_person[0].official_mail,
                 to_mail_address: per.official_mail,
                 topic: mail.topic, 
-                body: mail.body
+                body: mail.body,
+                hasAttachment: hasAttachment
 
             })
   `);
@@ -77,6 +79,41 @@ router.get('/get-mails/:text', function (req, res) {
                                 FILTER p._id == mail._from
                                 RETURN p
                               )
+            LET hasAttachment = mail.text_from_attachment == "" || 
+                                mail.text_from_attachment == null ? 0 : 1            
+
+            RETURN ({
+                mail_key: mail._key,
+                from: mail._from, 
+                to: mail._to,
+                full_name_from: 
+                    CONCAT_SEPARATOR(" ", from_person[0].name, from_person[0].surname), 
+                full_name_to: CONCAT_SEPARATOR(" ", per.name, per.surname),
+                from_mail_address: from_person[0].official_mail,
+                to_mail_address: per.official_mail,
+                topic: mail.topic, 
+                body: mail.body,
+                hasAttachment: hasAttachment
+
+            })
+  `);
+    res.send(keys);
+})
+    .pathParam('text', joi.string().required(), 'Text included in the content')
+    .summary('Get mails - searching in the body')
+    .description('Get mails - serching in the body');
+
+router.get('/get-mails-by-attachment/:text', function (req, res) {
+    const keys = db._query(aql`
+    FOR mail IN FULLTEXT(${mails}, 'text_from_attachment', ${req.pathParams.text})
+        FOR per in ${hrSystem}  
+            FILTER per._id == mail._to 
+            LET from_person = (FOR p in HRSystem 
+                                FILTER p._id == mail._from
+                                RETURN p
+                              )
+            LET hasAttachment = mail.text_from_attachment == "" || 
+                                mail.text_from_attachment == null ? 0 : 1 
                                             
             RETURN ({
                 mail_key: mail._key,
@@ -88,15 +125,15 @@ router.get('/get-mails/:text', function (req, res) {
                 from_mail_address: from_person[0].official_mail,
                 to_mail_address: per.official_mail,
                 topic: mail.topic, 
-                body: mail.body
-
+                body: mail.body,
+                hasAttachment: hasAttachment
             })
   `);
     res.send(keys);
 })
-    .pathParam('text', joi.string().required(), 'Text included in the content')
-    .summary('Get mails - searching in the body')
-    .description('Get mails - serching in the body');
+    .pathParam('text', joi.string().required(), 'Text included in the attachment')
+    .summary('Get mails - searching in the attachment')
+    .description('Get mails - serching in the attachment');
 
 router.post('/add-mail', function (req, res) {
     const data = req.body;
