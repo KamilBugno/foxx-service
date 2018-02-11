@@ -8,6 +8,7 @@ var directory = module.context.fileName("files");
 const joi = require('joi');
 const hrSystem = db._collection('HRSystem');
 const mails = db._collection('Mails');
+const devicesLogs = db._collection('DevicesLogs');
 
 module.context.use(router);
 
@@ -144,3 +145,27 @@ router.post('/add-mail', function (req, res) {
     .response(joi.object().required(), 'Added mail')
     .summary('Add mail')
     .description('Add mail');
+
+router.get('/antivirus-line-chart/:startDate/:endDate', function (req, res) {
+    const keys = db._query(aql`
+    LET startDate = ${req.pathParams.startDate}
+    LET endDate = ${req.pathParams.endDate}
+
+    FOR log IN ${devicesLogs}  
+        FILTER log.source == "Avast" 
+            AND log.information.status == "successful update"
+            AND log.date > startDate 
+            AND log.date < endDate
+        COLLECT number_of_day = DATE_DAY(log.date) INTO LogDate
+        RETURN {
+         number_of_day,
+         number_of_updates: LENGTH(UNIQUE(LogDate[*].log.device_SN))
+        }
+  `);
+    res.send(keys);
+})
+    .pathParam('startDate', joi.string().required(), 'Start date')
+    .pathParam('endDate', joi.string().required(), 'End date')
+    .summary('Get data for antivirus line chart')
+    .description('Get data for antivirus line chart');
+
