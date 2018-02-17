@@ -169,3 +169,36 @@ router.get('/antivirus-line-chart/:startDate/:endDate', function (req, res) {
     .summary('Get data for antivirus line chart')
     .description('Get data for antivirus line chart');
 
+router.get('/antivirus-pie-chart/:startDate/:endDate', function (req, res) {
+    const keys = db._query(aql`
+    LET startDate = ${req.pathParams.startDate}
+    LET endDate = ${req.pathParams.endDate}
+    LET updated_SN = (FOR log IN ${devicesLogs}   
+            FILTER log.source == "Avast" 
+                AND log.information.status == "successful update"
+                AND log.date > startDate 
+                AND log.date <= endDate
+            RETURN DISTINCT log.device_SN)
+        
+    LET updated_quantity = LENGTH(updated_SN)    
+    LET all_phone_SN = (FOR person IN ${hrSystem}
+            RETURN person.devices.phone[*].SN)[**]
+                    
+    LET all_computer_SN = (FOR person IN ${hrSystem}
+            RETURN person.devices.computer[*].SN)[**]
+                    
+    LET all_SN = APPEND(all_phone_SN, all_computer_SN)
+    LET not_updated_quantity = LENGTH(MINUS(all_SN, updated_SN))
+        
+    RETURN {
+        updated_quantity,
+        not_updated_quantity
+        }
+  `);
+    res.send(keys);
+})
+    .pathParam('startDate', joi.string().required(), 'Start date')
+    .pathParam('endDate', joi.string().required(), 'End date')
+    .summary('Get data for antivirus pie chart')
+    .description('Get data for antivirus pie chart');
+
