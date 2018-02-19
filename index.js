@@ -181,11 +181,28 @@ router.get('/antivirus-pie-chart/:startDate/:endDate', function (req, res) {
             RETURN DISTINCT log.device_SN)
         
     LET updated_quantity = LENGTH(updated_SN)    
-    LET all_phone_SN = (FOR person IN ${hrSystem}
-            RETURN person.devices.phone[*].SN)[**]
-                    
-    LET all_computer_SN = (FOR person IN ${hrSystem}
-            RETURN person.devices.computer[*].SN)[**]
+    LET all_computer_SN = (FOR person IN ${hrSystem} 
+        RETURN (
+            { device: person.devices.computer[* FILTER 
+                                                CURRENT.initial_date <= startDate AND 
+                                                (CURRENT.end_date >= endDate || CURRENT.end_date == null)
+                                             ].SN
+                         
+            }
+        ).device
+        )[**]
+
+
+    LET all_phone_SN = (FOR person IN ${hrSystem} 
+        RETURN (
+            { device: person.devices.phone[* FILTER 
+                                                CURRENT.initial_date <= startDate AND 
+                                                (CURRENT.end_date >= endDate || CURRENT.end_date == null)
+                                          ].SN
+                         
+            }
+        ).device
+        )[**]
                     
     LET all_SN = APPEND(all_phone_SN, all_computer_SN)
     LET not_updated_quantity = LENGTH(MINUS(all_SN, updated_SN))
