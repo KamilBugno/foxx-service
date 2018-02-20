@@ -264,7 +264,7 @@ router.get('/antivirus-people-list/:startDate/:endDate', function (req, res) {
         })
     
     FOR person in employees
-        FILTER LENGTH(INTERSECTION(person.sn, updated_SN)) > 0
+        FILTER LENGTH(INTERSECTION(person.sn, updated_SN)) == 0
         RETURN {
             name: person.name,
             mail: person.mail,
