@@ -57,8 +57,8 @@ router.get('/get-all-mails', function (req, res) {
                 full_name_from: 
                     CONCAT_SEPARATOR(" ", from_person[0].name, from_person[0].surname), 
                 full_name_to: CONCAT_SEPARATOR(" ", per.name, per.surname),
-                from_mail_address: from_person[0].official_mail,
-                to_mail_address: per.official_mail,
+                from_key: from_person[0]._key,
+                to_key: per._key,
                 topic: mail.topic, 
                 body: mail.body,
                 has_attachment: has_attachment
@@ -90,8 +90,8 @@ router.get('/get-mails-by-body/:text', function (req, res) {
                 full_name_from: 
                     CONCAT_SEPARATOR(" ", from_person[0].name, from_person[0].surname), 
                 full_name_to: CONCAT_SEPARATOR(" ", per.name, per.surname),
-                from_mail_address: from_person[0].official_mail,
-                to_mail_address: per.official_mail,
+                from_key: from_person[0]._key,
+                to_key: per._key,
                 topic: mail.topic, 
                 body: mail.body,
                 has_attachment: has_attachment
@@ -123,8 +123,8 @@ router.get('/get-mails-by-attachment/:text', function (req, res) {
                 full_name_from: 
                     CONCAT_SEPARATOR(" ", from_person[0].name, from_person[0].surname), 
                 full_name_to: CONCAT_SEPARATOR(" ", per.name, per.surname),
-                from_mail_address: from_person[0].official_mail,
-                to_mail_address: per.official_mail,
+                from_key: from_person[0]._key,
+                to_key: per._key,
                 topic: mail.topic, 
                 body: mail.body,
                 has_attachment: has_attachment
@@ -278,4 +278,22 @@ router.get('/antivirus-people-list/:startDate/:endDate', function (req, res) {
     .pathParam('endDate', joi.string().required(), 'End date')
     .summary('Get people who do not update antivirus')
     .description('Get people who do not update antivirus');
+
+router.get('/correspondence-table-people/:key', function (req, res) {
+    const keys = db._query(aql`
+    FOR person IN  ${hrSystem}
+        FILTER person._key == ${req.pathParams.key}
+        RETURN {
+            name: CONCAT_SEPARATOR(" ", person.name, person.surname),
+            mail: person.official_mail,
+            department: person.department,
+            roles: person.roles[*].title
+        }
+  `);
+    res.send(keys);
+})
+    .pathParam('key', joi.string().required(), 'Key of the document')
+    .summary('Get people by a key')
+    .description('Get people by a key');
+
 
