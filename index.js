@@ -61,7 +61,8 @@ router.get('/get-all-mails', function (req, res) {
                 to_key: per._key,
                 topic: mail.topic, 
                 body: mail.body,
-                has_attachment: has_attachment
+                has_attachment: has_attachment,
+                date: mail.date
 
             })
   `);
@@ -94,7 +95,8 @@ router.get('/get-mails-by-body/:text', function (req, res) {
                 to_key: per._key,
                 topic: mail.topic, 
                 body: mail.body,
-                has_attachment: has_attachment
+                has_attachment: has_attachment,
+                date: mail.date
 
             })
   `);
@@ -127,7 +129,8 @@ router.get('/get-mails-by-attachment/:text', function (req, res) {
                 to_key: per._key,
                 topic: mail.topic, 
                 body: mail.body,
-                has_attachment: has_attachment
+                has_attachment: has_attachment,
+                date: mail.date
             })
   `);
     res.send(keys);
