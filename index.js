@@ -38,11 +38,13 @@ router.post('/save-file/:name', function (req, res) {
     .summary('Save file')
     .description('Save a binary file');
 
-router.get('/get-all-mails', function (req, res) {
+router.get('/get-all-mails/:startDate/:endDate', function (req, res) {
     const keys = db._query(aql`
     FOR mail IN ${mails} 
        FOR per in ${hrSystem}  
-            FILTER per._id == mail._to 
+            FILTER per._id == mail._to &&
+                mail.date >= ${req.pathParams.startDate} &&
+                mail.date <= ${req.pathParams.endDate}
             LET from_person = (FOR p in HRSystem 
                                 FILTER p._id == mail._from
                                 RETURN p
@@ -71,11 +73,13 @@ router.get('/get-all-mails', function (req, res) {
     .summary('Get mails')
     .description('Get mails');
 
-router.get('/get-mails-by-body/:text', function (req, res) {
+router.get('/get-mails-by-body/:text/:startDate/:endDate', function (req, res) {
     const keys = db._query(aql`
     FOR mail IN ${mails} 
         FOR per in ${hrSystem}  
-            FILTER per._id == mail._to 
+            FILTER per._id == mail._to &&
+                mail.date >= ${req.pathParams.startDate} &&
+                mail.date <= ${req.pathParams.endDate}
             FILTER REGEX_TEST(mail.body, ${req.pathParams.text}, true)
             LET from_person = (FOR p in HRSystem 
                                 FILTER p._id == mail._from
@@ -106,11 +110,13 @@ router.get('/get-mails-by-body/:text', function (req, res) {
     .summary('Get mails - searching in the body')
     .description('Get mails - serching in the body');
 
-router.get('/get-mails-by-attachment/:text', function (req, res) {
+router.get('/get-mails-by-attachment/:text/:startDate/:endDate', function (req, res) {
     const keys = db._query(aql`
     FOR mail IN FULLTEXT(${mails}, 'text_from_attachment', ${req.pathParams.text})
         FOR per in ${hrSystem}  
-            FILTER per._id == mail._to 
+            FILTER per._id == mail._to &&
+                mail.date >= ${req.pathParams.startDate} &&
+                mail.date <= ${req.pathParams.endDate}
             LET from_person = (FOR p in HRSystem 
                                 FILTER p._id == mail._from
                                 RETURN p
