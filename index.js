@@ -9,6 +9,7 @@ const joi = require('joi');
 const hrSystem = db._collection('HRSystem');
 const mails = db._collection('Mails');
 const devicesLogs = db._collection('DevicesLogs');
+const internalSystemsLogs = db._collection('InternalSystemsLogs')
 
 module.context.use(router);
 
@@ -310,5 +311,25 @@ router.get('/correspondence-table-people/:key', function (req, res) {
     .pathParam('key', joi.string().required(), 'Key of the document')
     .summary('Get people by a key')
     .description('Get people by a key');
+
+router.get('/internal-system-employees-accounts/:startDate/:endDate', function (req, res) {
+    const keys = db._query(aql`
+    FOR log IN ${internalSystemsLogs}  
+      FILTER log.createdAt > ${req.pathParams.startDate} &&
+         log.createdAt < ${req.pathParams.endDate} &&
+         log.action_type == 'login failed'
+  
+      LET person = (FOR p IN HRSystem 
+                        FILTER p._key == log.person_key 
+                        RETURN CONCAT_SEPARATOR(" ", p.name, p.surname))[0]
+  
+      COLLECT name = person INTO Person
+  
+      RETURN { name : name, numer_of_failed_login : LENGTH(UNIQUE(Person))}
+  `);
+    res.send(keys);
+})
+    .summary('Get name of failed login account')
+    .description('Get name of failed login account');
 
 
