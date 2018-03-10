@@ -43,8 +43,10 @@ router.get('/get-all-mails/:startDate/:endDate', function (req, res) {
     FOR mail IN ${mails} 
        FOR per in ${hrSystem}  
             FILTER per._id == mail._to &&
-                mail.date >= ${req.pathParams.startDate} &&
-                mail.date <= ${req.pathParams.endDate}
+                (DATE_COMPARE(mail.date, ${req.pathParams.startDate}, "years", "days") ||
+                   mail.date > ${req.pathParams.startDate}) &&
+                (DATE_COMPARE(mail.date, ${req.pathParams.endDate}, "years", "days") ||
+                   mail.date < ${req.pathParams.endDate}) 
             LET from_person = (FOR p in HRSystem 
                                 FILTER p._id == mail._from
                                 RETURN p
@@ -78,8 +80,10 @@ router.get('/get-mails-by-body/:text/:startDate/:endDate', function (req, res) {
     FOR mail IN ${mails} 
         FOR per in ${hrSystem}  
             FILTER per._id == mail._to &&
-                mail.date >= ${req.pathParams.startDate} &&
-                mail.date <= ${req.pathParams.endDate}
+                (DATE_COMPARE(mail.date, ${req.pathParams.startDate}, "years", "days") ||
+                   mail.date > ${req.pathParams.startDate}) &&
+                (DATE_COMPARE(mail.date, ${req.pathParams.endDate}, "years", "days") ||
+                   mail.date < ${req.pathParams.endDate}) 
             FILTER REGEX_TEST(mail.body, ${req.pathParams.text}, true)
             LET from_person = (FOR p in HRSystem 
                                 FILTER p._id == mail._from
@@ -115,8 +119,10 @@ router.get('/get-mails-by-attachment/:text/:startDate/:endDate', function (req, 
     FOR mail IN FULLTEXT(${mails}, 'text_from_attachment', ${req.pathParams.text})
         FOR per in ${hrSystem}  
             FILTER per._id == mail._to &&
-                mail.date >= ${req.pathParams.startDate} &&
-                mail.date <= ${req.pathParams.endDate}
+               (DATE_COMPARE(mail.date, ${req.pathParams.startDate}, "years", "days") ||
+                   mail.date > ${req.pathParams.startDate}) &&
+                (DATE_COMPARE(mail.date, ${req.pathParams.endDate}, "years", "days") ||
+                   mail.date < ${req.pathParams.endDate}) 
             LET from_person = (FOR p in HRSystem 
                                 FILTER p._id == mail._from
                                 RETURN p
