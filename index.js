@@ -314,7 +314,7 @@ router.get('/correspondence-table-people/:key', function (req, res) {
 
 router.get('/internal-system-employees-accounts/:startDate/:endDate', function (req, res) {
     const keys = db._query(aql`
-    FOR log IN ${internalSystemsLogs}  
+    LET results = (FOR log IN ${internalSystemsLogs}  
       FILTER log.createdAt > ${req.pathParams.startDate} &&
          log.createdAt < ${req.pathParams.endDate} &&
          log.action_type == 'login failed'
@@ -325,7 +325,11 @@ router.get('/internal-system-employees-accounts/:startDate/:endDate', function (
   
       COLLECT name = person INTO Person
   
-      RETURN { name : name, numer_of_failed_login : LENGTH(UNIQUE(Person))}
+      RETURN { name : name, number_of_failed_login : LENGTH(UNIQUE(Person))})
+    FOR result IN results
+    SORT result.number_of_failed_login DESC
+    RETURN result
+
   `);
     res.send(keys);
 })
