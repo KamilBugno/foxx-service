@@ -338,8 +338,6 @@ router.get('/internal-system-employees-accounts/:startDate/:endDate', function (
 
 router.get('/internal-system-login-ip/:startDate/:endDate', function (req, res) {
     const keys = db._query(aql`
-     LET startDate = "2018-01-01"
-     LET endDate = "2018-04-01"
      LET results = (FOR log IN ${internalSystemsLogs}
           FILTER log.createdAt > ${req.pathParams.startDate} &&
              log.createdAt < ${req.pathParams.endDate} &&
