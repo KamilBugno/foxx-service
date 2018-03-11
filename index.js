@@ -336,4 +336,26 @@ router.get('/internal-system-employees-accounts/:startDate/:endDate', function (
     .summary('Get name of failed login account')
     .description('Get name of failed login account');
 
+router.get('/internal-system-login-ip/:startDate/:endDate', function (req, res) {
+    const keys = db._query(aql`
+     LET startDate = "2018-01-01"
+     LET endDate = "2018-04-01"
+     LET results = (FOR log IN ${internalSystemsLogs}
+          FILTER log.createdAt > ${req.pathParams.startDate} &&
+             log.createdAt < ${req.pathParams.endDate} &&
+             log.action_type == 'login failed'
+  
+          COLLECT ip = log.network_data.ip INTO Ip
+  
+          RETURN { ip : ip, number_of_failed_login : LENGTH(UNIQUE(Ip))})
+      
+    FOR result IN results
+    SORT result.number_of_failed_login DESC
+    RETURN result
+  `);
+    res.send(keys);
+})
+    .summary('Get name of failed login account')
+    .description('Get name of failed login account');
+
 
