@@ -13,6 +13,9 @@ const internalSystemsLogs = db._collection('InternalSystemsLogs')
 
 module.context.use(router);
 
+
+
+
 router.get('/download-file/:name', function (req, res) {
     var filename = module.context.fileName(`files/${req.pathParams.name}`);
     if (!fs.isFile(filename)) {
@@ -272,6 +275,7 @@ router.get('/antivirus-people-list/:startDate/:endDate', function (req, res) {
 
     LET employees = (FOR person IN ${hrSystem} 
         RETURN{
+        key: person._key,
         name : CONCAT_SEPARATOR(" ", person.name, person.surname),
         mail: person.official_mail,
         department: person.department,
@@ -281,12 +285,9 @@ router.get('/antivirus-people-list/:startDate/:endDate', function (req, res) {
     
     FOR person in employees
         FILTER LENGTH(INTERSECTION(person.sn, updated_SN)) == 0
-        RETURN {
-            name: person.name,
-            mail: person.mail,
-            department: person.department,
-            roles: person.roles
-        }
+        RETURN ({
+            key: person.key
+        })
   `);
     res.send(keys);
 })
