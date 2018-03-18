@@ -357,4 +357,39 @@ router.get('/internal-system-login-ip/:startDate/:endDate', function (req, res) 
     .summary('Get name of failed login account')
     .description('Get name of failed login account');
 
+router.get('/get-mails-elastic-search/:key', function (req, res) {
+    const keys = db._query(aql`
+    FOR mail IN ${mails} 
+       FOR per in ${hrSystem}  
+            FILTER per._id == mail._to &&
+                mail._key == ${req.pathParams.key}
+
+            LET from_person = (FOR p in HRSystem 
+                                FILTER p._id == mail._from
+                                RETURN p
+                              )
+            LET has_attachment = mail.text_from_attachment == "" || 
+                                mail.text_from_attachment == null ? 0 : 1                
+
+            RETURN ({
+                mail_key: mail._key,
+                from: mail._from, 
+                to: mail._to,
+                full_name_from: 
+                    CONCAT_SEPARATOR(" ", from_person[0].name, from_person[0].surname), 
+                full_name_to: CONCAT_SEPARATOR(" ", per.name, per.surname),
+                from_key: from_person[0]._key,
+                to_key: per._key,
+                topic: mail.topic, 
+                body: mail.body,
+                has_attachment: has_attachment,
+                date: mail.date
+
+            })
+  `);
+    res.send(keys);
+})
+    .pathParam('key', joi.string().required(), 'Text included in the attachment')
+    .summary('Get mails - searching in the attachment')
+    .description('Get mails - serching in the attachment');
 
